@@ -1,32 +1,34 @@
-/**
- * Some predefined delay values (in milliseconds).
- */
-export enum Delays {
-  Short = 500,
-  Medium = 2000,
-  Long = 5000,
+import { AnchorProvider, Program } from '@project-serum/anchor'
+import { Wallet } from '@project-serum/anchor'
+import { Connection, Keypair, PublicKey } from '@solana/web3.js'
+
+const HEDGE_ADDRESS = new PublicKey(
+  'HedgeEohwU6RqokrvPU4Hb6XKPub8NuKbnPmY7FoMMtN',
+)
+
+async function hello() {
+  console.log('Hello Notifi')
+}
+async function attach() {
+  const finalizeConnection = new Connection(
+    'https://api.mainnet-beta.solana.com',
+    'confirmed',
+  )
+  const wallet = new Wallet(Keypair.generate())
+  const provider = new AnchorProvider(finalizeConnection, wallet, {
+    commitment: 'confirmed',
+  })
+  const program = await Program.at(HEDGE_ADDRESS, provider)
+
+  program.addEventListener('DepositVaultEvent', (event) => {
+    console.log('Hey Notifi, this vault had a deposit:', event)
+    console.log(JSON.stringify(event))
+  })
+  program.addEventListener('LiquidateVaultEvent', (event) => {
+    console.log('Hey Notifi, this vault was liquidated:', event)
+    console.log(JSON.stringify(event))
+  })
 }
 
-/**
- * Returns a Promise<string> that resolves after a given time.
- *
- * @param {string} name - A name.
- * @param {number=} [delay=Delays.Medium] - A number of milliseconds to delay resolution of the Promise.
- * @returns {Promise<string>}
- */
-function delayedHello(
-  name: string,
-  delay: number = Delays.Medium,
-): Promise<string> {
-  return new Promise((resolve: (value?: string) => void) =>
-    setTimeout(() => resolve(`Hello, ${name}`), delay),
-  );
-}
-
-// Below are examples of using ESLint errors suppression
-// Here it is suppressing a missing return type definition for the greeter function.
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export async function greeter(name: string) {
-  return await delayedHello(name, Delays.Long);
-}
+hello()
+attach()
